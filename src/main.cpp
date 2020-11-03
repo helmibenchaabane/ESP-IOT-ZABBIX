@@ -87,7 +87,7 @@ void loop() {
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
 
-  //crée la fonction getData()
+
     DHTSensorData_t sd = getData();       
     
   // Check if any reads failed and exit early (to try again).
@@ -151,7 +151,5 @@ void loop() {
     Serial.printf("Closing connection - Sleeping for %d sec...\n", sendDataIntervallSec);
     client.stop(); 
     goDeepsleep();
-
-    //delay(sendDataIntervallSec*1000);
 }
 
