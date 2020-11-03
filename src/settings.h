@@ -33,7 +33,7 @@ typedef struct DHTSensorData_t
 
 // ***** Zabbix related settings *****
 // zabbix server or proxy - either IP or FQDN
-const char * server = "192.168.43.190";
+const char * server = "192.168.43.234";
 // zabbix trapper port
 const uint16_t port = 10051;
 // hostname of host in zabbix
