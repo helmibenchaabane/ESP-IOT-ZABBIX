@@ -22,6 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+// 
+//Define DHTSensorData_t Structure
+typedef struct DHTSensorData_t
+{
+    float hum;
+    float temp;
+    float tempi;
+}DHTSensorData_t;
+
 // ***** Zabbix related settings *****
 // zabbix server or proxy - either IP or FQDN
 const char * server = "192.168.43.190";

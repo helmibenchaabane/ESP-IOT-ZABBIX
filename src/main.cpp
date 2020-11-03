@@ -7,21 +7,23 @@
 #include <DHT.h>
 #include "settings.h"
 
+
 //-----------SENSOR----------
 #define DHTPIN 14
 #define DHTTYPE DHT22
 
 DHT dht(DHTPIN, DHTTYPE);
 
-//Define DHTSensorData_t Structure
-typedef struct DHTSensorData_t
-{
-  float hum;
-  float temp;
-  float tempi;
-}DHTSensorData_t;
-
 // ****** Functions *******
+void goDeepsleep() {    
+    WiFi.disconnect(true);
+    delay(100);
+    esp_sleep_enable_timer_wakeup(sendDataIntervallSec * 1000 * 1000ULL);
+    Serial.printf("Deepsleep starts now for %d seconds.\n", sendDataIntervallSec);
+    delay(100);
+    esp_deep_sleep_start();
+}
+
 DHTSensorData_t getData(){
   DHTSensorData_t sd;
   sd.hum = dht.readHumidity();
@@ -33,6 +35,7 @@ DHTSensorData_t getData(){
 
   return sd;
 }
+
 // ****** Main *******
 
 void setup() {   
@@ -61,6 +64,7 @@ void setup() {
           digitalWrite(RED_LED, HIGH);
           delay(1000);
           digitalWrite(RED_LED, LOW);
+          goDeepsleep();
         }
         delay(300);
     }
@@ -72,33 +76,33 @@ void setup() {
     Serial.println("=== SETUP End ===");
 } // setup
 
-void loop() {
-    Serial.println("=== START ==="); 
-    // init sensor
-    // a changer par DHT 
-    dht.begin();
- // Can be optimized
- // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  // Read temperature as Celsius (the default)
-  float t = dht.readTemperature();
-  // Read temperature as Fahrenheit (isFahrenheit = true)
-  //float f = dht.readTemperature(true);
 
+
+void loop() {
+  // print starting process
+    Serial.println("=== START ==="); 
+  // init sensor
+    dht.begin();
+  // Can be optimized
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+
+  //crée la fonction getData()
+    DHTSensorData_t sd = getData();       
+    
   // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t)) {
-    Serial.println(F("[ERROR] Failed to read from DHT sensor!"));
+    if (isnan(sd.hum) || isnan(sd.temp)) {
+        Serial.println(F("[ERROR] Failed to read from DHT sensor!"));
         //indicate to user
         digitalWrite(RED_LED, HIGH);
         delay(1000);
         digitalWrite(RED_LED, LOW);
+        goDeepsleep();
   }
-    //crée la fonction getData()
-
-    DHTSensorData_t sd = getData();       
+    // print data collected to serial console
     Serial.printf("Collected values. hum:%2.2f, temp:%2.2f, tempi:%2.2f\n", sd.hum, sd.temp, sd.tempi);
-
+    Serial.println("-------------------------");
+    //inisialize zabbix sender
     ZabbixSender zs;
     String jsonPayload;
     jsonPayload = zs.createPayload(hostname, sd.hum, sd.temp, sd.tempi);
@@ -117,6 +121,7 @@ void loop() {
         digitalWrite(RED_LED, HIGH);
         delay(1000);
         digitalWrite(RED_LED, LOW); 
+        goDeepsleep();
     }
     
     Serial.println("Connected. Sending data.");
@@ -131,6 +136,7 @@ void loop() {
             digitalWrite(RED_LED, HIGH);
             delay(1000);
             digitalWrite(RED_LED, LOW);
+            goDeepsleep();
         }
     }
     
@@ -144,7 +150,8 @@ void loop() {
 
     Serial.printf("Closing connection - Sleeping for %d sec...\n", sendDataIntervallSec);
     client.stop(); 
+    goDeepsleep();
 
-    delay(sendDataIntervallSec);
+    //delay(sendDataIntervallSec*1000);
 }
 
